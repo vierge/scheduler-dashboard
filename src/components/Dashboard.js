@@ -45,7 +45,19 @@ class Dashboard extends Component {
 
   componentDidMount() {
     const focused = JSON.parse(localStorage.getItem("focused"));
-
+    Promise.all([
+      axios.get("/api/days"),
+      axios.get("/api/appointments"),
+      axios.get("/api/interviewers"),
+    ]).then(([days, appointments, interviewers]) => {
+      this.setState({
+        loading: false,
+        days: days.data,
+        appointments: appointments.data,
+        interviewers: interviewers.data,
+      });
+    });
+    this.socket = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
     if (focused) {
       this.setState({ focused });
     }
@@ -54,18 +66,6 @@ class Dashboard extends Component {
   componentDidUpdate(prevProps, prevState) {
     if (prevState.focused !== this.state.focused) {
       localStorage.setItem("focused", JSON.stringify(this.state.focused));
-      Promise.all([
-        axios.get("/api/days"),
-        axios.get("/api/appointments"),
-        axios.get("/api/interviewers"),
-      ]).then(([days, appointments, interviewers]) => {
-        this.setState({
-          loading: false,
-          days: days.data,
-          appointments: appointments.data,
-          interviewers: interviewers.data,
-        });
-      });
     }
   }
 
